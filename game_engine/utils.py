@@ -23,17 +23,16 @@ class Rank(Enum):
     ACE = 14
 
 class Card:
-    def __init__(self,rank,suit):
+    def __init__(self, rank, suit):
         self.rank = rank
         self.suit = suit
 
     def __repr__(self):
-        return  f"{self.rank.value}{self.suit.value}"
+        return f"{self.rank.value}{self.suit.value}"
 
-    def __eq__(self,other):
+    def __eq__(self, other):
         if not isinstance(other, Card):
             return False
-
         return self.rank == other.rank and self.suit == other.suit
 
     def compare_to(self, other):
@@ -43,10 +42,10 @@ class Card:
             return 1
         else:
             suit_order = {
-                Suit.CLUBS: 0,     
+                Suit.CLUBS: 0,
                 Suit.HEARTS: 2,
-                Suit.SPADES: 3  
-            } 
+                Suit.SPADES: 3
+            }
 
         if suit_order[self.suit] < suit_order[other.suit]:
             return -1
@@ -54,14 +53,14 @@ class Card:
             return 1
         return 0
 
-    def to_dict(self) -> dict:
+    def to_dict(self):
         return {
             "rank": self.rank.value,
             "suit": self.suit.value
         }
 
     @classmethod
-    def from_dict(cls, data: dict) -> "Card":
+    def from_dict(cls, data):
         return cls(Rank(data["rank"]), Suit(data["suit"]))
 
 class Deck:
@@ -74,10 +73,10 @@ class Deck:
             Card(rank, suit)
             for suit in Suit
             for rank in Rank
-        ]    
+        ]
         random.shuffle(self.cards)
 
     def deal(self):
         if not self.cards:
             raise ValueError("Empty deck")
-            return self.cards.pop()
+        return self.cards.pop()
