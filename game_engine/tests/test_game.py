@@ -1,6 +1,5 @@
 import unittest
-from game_engine.models import GameState, GamePhase, MoveType
-from game_engine.engine import start_game, process_move, reset_for_next_hand
+from game_engine.poker import GameState, GamePhase, MoveType, start_game, process_move, reset_for_next_hand
 from game_engine.exceptions import InvalidMoveException, GameStateException
 
 
@@ -61,7 +60,7 @@ class TestGame(unittest.TestCase):
             p.current_bet = 10
             self.state.pot = 20
         
-        from game_engine.engine import _end_betting_round
+        from game_engine.poker.engine import _end_betting_round
         _end_betting_round(self.state)
         
         self.assertEqual(self.state.phase, GamePhase.FINISHED)

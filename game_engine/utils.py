@@ -43,6 +43,7 @@ class Card:
         else:
             suit_order = {
                 Suit.CLUBS: 0,
+                Suit.DIAMONDS: 1,
                 Suit.HEARTS: 2,
                 Suit.SPADES: 3
             }
