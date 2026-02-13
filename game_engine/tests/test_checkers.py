@@ -1,5 +1,13 @@
 import unittest
-from game_engine.checkers import CheckersGameState, CheckersPhase, CheckersPlayer, start_checkers_game, process_checkers_move, get_valid_moves
+from game_engine.checkers import (
+    CheckersGameState,
+    CheckersPhase,
+    CheckersPlayer,
+    start_checkers_game,
+    process_checkers_move,
+    get_valid_moves,
+)
+from game_engine.checkers.checkers_models import CheckersPiece
 from game_engine.exceptions import InvalidMoveException, GameStateException
 
 
@@ -27,26 +35,27 @@ class TestCheckers(unittest.TestCase):
     def test_hex_board_structure(self):
         start_checkers_game(self.state, self.players)
         hex_board = self.state.hex_board
-        
-        self.assertEqual(len(hex_board.cells), 96)
-        self.assertEqual(len(hex_board.side_cells[1]), 32)
-        self.assertEqual(len(hex_board.side_cells[2]), 32)
-        self.assertEqual(len(hex_board.side_cells[3]), 32)
+        self.assertEqual(len(hex_board.cells), 78)
+        self.assertEqual(len(hex_board.side_cells[1]), 11)
+        self.assertEqual(len(hex_board.side_cells[2]), 11)
+        self.assertEqual(len(hex_board.side_cells[3]), 11)
 
     def test_simple_move(self):
         start_checkers_game(self.state, self.players)
         current = self.state.get_current_player()
-        
-        white_pieces = [(cell_id, piece) for cell_id, piece in self.state.board.items() 
-                       if piece.player == CheckersPlayer.WHITE]
+        white_pieces = [
+            (cell_id, piece)
+            for cell_id, piece in self.state.board.items()
+            if piece.player == CheckersPlayer.WHITE
+        ]
         self.assertGreater(len(white_pieces), 0)
-        
         from_cell_id = white_pieces[0][0]
         valid_moves = get_valid_moves(self.state, from_cell_id)
-        
         if valid_moves:
             to_cell_id = valid_moves[0]
-            process_checkers_move(self.state, current.bot_id, from_cell_id, to_cell_id)
+            process_checkers_move(
+                self.state, current.bot_id, from_cell_id, to_cell_id
+            )
             self.assertIn(to_cell_id, self.state.board)
             self.assertNotIn(from_cell_id, self.state.board)
             self.assertEqual(len(self.state.move_history), 1)
@@ -54,11 +63,12 @@ class TestCheckers(unittest.TestCase):
     def test_turn_rotation(self):
         start_checkers_game(self.state, self.players)
         initial_index = self.state.current_player_index
-        
         current = self.state.get_current_player()
-        white_pieces = [(cell_id, piece) for cell_id, piece in self.state.board.items() 
-                       if piece.player == current.color]
-        
+        white_pieces = [
+            (cell_id, piece)
+            for cell_id, piece in self.state.board.items()
+            if piece.player == current.color
+        ]
         if white_pieces:
             from_cell_id = white_pieces[0][0]
             valid_moves = get_valid_moves(self.state, from_cell_id)
@@ -66,9 +76,13 @@ class TestCheckers(unittest.TestCase):
                 to_cell_id = valid_moves[0]
                 initial_history_len = len(self.state.move_history)
                 try:
-                    process_checkers_move(self.state, current.bot_id, from_cell_id, to_cell_id)
+                    process_checkers_move(
+                        self.state, current.bot_id, from_cell_id, to_cell_id
+                    )
                     if len(self.state.move_history) > initial_history_len:
-                        self.assertNotEqual(self.state.current_player_index, initial_index)
+                        self.assertNotEqual(
+                            self.state.current_player_index, initial_index
+                        )
                 except Exception:
                     pass
 
@@ -76,94 +90,94 @@ class TestCheckers(unittest.TestCase):
         start_checkers_game(self.state, self.players)
         current = self.state.get_current_player()
         other = [p for p in self.state.players if p.bot_id != current.bot_id][0]
-        
-        white_pieces = [(cell_id, piece) for cell_id, piece in self.state.board.items() 
-                       if piece.player == CheckersPlayer.WHITE]
-        
+        white_pieces = [
+            (cell_id, piece)
+            for cell_id, piece in self.state.board.items()
+            if piece.player == CheckersPlayer.WHITE
+        ]
         if white_pieces:
             from_cell_id = white_pieces[0][0]
             valid_moves = get_valid_moves(self.state, from_cell_id)
             if valid_moves:
                 to_cell_id = valid_moves[0]
                 with self.assertRaises(InvalidMoveException):
-                    process_checkers_move(self.state, other.bot_id, from_cell_id, to_cell_id)
+                    process_checkers_move(
+                        self.state, other.bot_id, from_cell_id, to_cell_id
+                    )
 
     def test_invalid_move_no_piece(self):
         start_checkers_game(self.state, self.players)
         current = self.state.get_current_player()
-        
         empty_cell_id = 999
         if empty_cell_id not in self.state.board:
             with self.assertRaises(InvalidMoveException):
-                process_checkers_move(self.state, current.bot_id, empty_cell_id, 1000)
+                process_checkers_move(
+                    self.state, current.bot_id, empty_cell_id, 1000
+                )
 
     def test_invalid_move_wrong_position(self):
         start_checkers_game(self.state, self.players)
         current = self.state.get_current_player()
-        
-        white_pieces = [(cell_id, piece) for cell_id, piece in self.state.board.items() 
-                       if piece.player == current.color]
-        
+        white_pieces = [
+            (cell_id, piece)
+            for cell_id, piece in self.state.board.items()
+            if piece.player == current.color
+        ]
         if white_pieces:
             from_cell_id = white_pieces[0][0]
             invalid_to = 9999
             with self.assertRaises(InvalidMoveException):
-                process_checkers_move(self.state, current.bot_id, from_cell_id, invalid_to)
+                process_checkers_move(
+                    self.state, current.bot_id, from_cell_id, invalid_to
+                )
 
     def test_capture(self):
         start_checkers_game(self.state, self.players)
-        
-        white_pieces = [(cell_id, piece) for cell_id, piece in self.state.board.items() 
-                       if piece.player == CheckersPlayer.WHITE]
-        red_pieces = [(cell_id, piece) for cell_id, piece in self.state.board.items() 
-                     if piece.player == CheckersPlayer.RED]
-        
-        if white_pieces and red_pieces:
-            white_cell_id = white_pieces[0][0]
-            red_cell_id = red_pieces[0][0]
-            
-            hex_board = self.state.hex_board
-            white_neighbors = hex_board.get_neighbors(white_cell_id)
-            
-            if red_cell_id in white_neighbors:
-                red_neighbors = hex_board.get_neighbors(red_cell_id)
-                jump_cells = [n for n in red_neighbors if n != white_cell_id and n not in self.state.board]
-                
-                if jump_cells:
-                    red_player = [p for p in self.state.players 
-                                 if p.color == CheckersPlayer.RED][0]
-                    initial_red_count = red_player.pieces_count
-                    
-                    current = self.state.get_current_player()
-                    if current.color == CheckersPlayer.WHITE:
-                        jump_cell_id = jump_cells[0]
-                        process_checkers_move(self.state, current.bot_id, white_cell_id, jump_cell_id)
-                        
-                        red_player = [p for p in self.state.players 
-                                     if p.color == CheckersPlayer.RED][0]
-                        self.assertLess(red_player.pieces_count, initial_red_count)
+        current = self.state.get_current_player()
+        if current.color != CheckersPlayer.WHITE:
+            self.skipTest("current player not white")
+        self.state.board = {
+            0: CheckersPiece(CheckersPlayer.WHITE),
+            2: CheckersPiece(CheckersPlayer.RED),
+        }
+        self.state.current_player_index = 0
+        for p in self.state.players:
+            p.pieces_count = self.state.count_pieces(p.color)
+        red_player = [p for p in self.state.players if p.color == CheckersPlayer.RED][0]
+        initial_red = red_player.pieces_count
+        moves = get_valid_moves(self.state, 0)
+        self.assertIn(4, moves)
+        process_checkers_move(self.state, current.bot_id, 0, 4)
+        red_player = [p for p in self.state.players if p.color == CheckersPlayer.RED][0]
+        self.assertLess(red_player.pieces_count, initial_red)
+        self.assertNotIn(2, self.state.board)
 
     def test_king_promotion(self):
         start_checkers_game(self.state, self.players)
+        hex_board = self.state.hex_board
+        last_row = hex_board.last_row_by_side[1]
+        dist6 = [c for c, d in hex_board.distance_by_side[1].items() if d == 6]
+        good_neighbor = None
+        for cell_6 in dist6:
+            fwd = hex_board.get_forward_neighbors(cell_6, 1)
+            for neighbor in hex_board.get_neighbors(cell_6):
+                if neighbor in last_row and neighbor in fwd:
+                    good_neighbor = (cell_6, neighbor)
+                    break
+            if good_neighbor:
+                break
+        if not good_neighbor:
+            self.skipTest("no suitable cell pair for promotion test")
+        cell_6, neighbor = good_neighbor
+        self.state.board = {cell_6: CheckersPiece(CheckersPlayer.WHITE)}
+        self.state.current_player_index = 0
         current = self.state.get_current_player()
-        
-        if current.color == CheckersPlayer.WHITE:
-            hex_board = self.state.hex_board
-            white_pieces = [(cell_id, piece) for cell_id, piece in self.state.board.items() 
-                           if piece.player == CheckersPlayer.WHITE and not piece.is_king]
-            
-            for cell_id, piece in white_pieces:
-                cell_side = hex_board.get_side(cell_id)
-                opposite_side = hex_board.get_opposite_side(1)
-                
-                neighbors = hex_board.get_neighbors(cell_id)
-                for neighbor_id in neighbors:
-                    neighbor_side = hex_board.get_side(neighbor_id)
-                    if neighbor_side == opposite_side and neighbor_id not in self.state.board:
-                        process_checkers_move(self.state, current.bot_id, cell_id, neighbor_id)
-                        if neighbor_id in self.state.board:
-                            self.assertTrue(self.state.board[neighbor_id].is_king)
-                        return
+        for p in self.state.players:
+            p.pieces_count = 1 if p.color == CheckersPlayer.WHITE else 0
+        process_checkers_move(
+            self.state, current.bot_id, cell_6, neighbor
+        )
+        self.assertTrue(self.state.board[neighbor].is_king)
 
     def test_game_already_started(self):
         start_checkers_game(self.state, self.players)
@@ -177,10 +191,11 @@ class TestCheckers(unittest.TestCase):
     def test_get_valid_moves(self):
         start_checkers_game(self.state, self.players)
         current = self.state.get_current_player()
-        
-        white_pieces = [(cell_id, piece) for cell_id, piece in self.state.board.items() 
-                       if piece.player == current.color]
-        
+        white_pieces = [
+            (cell_id, piece)
+            for cell_id, piece in self.state.board.items()
+            if piece.player == current.color
+        ]
         if white_pieces:
             from_cell_id = white_pieces[0][0]
             moves = get_valid_moves(self.state, from_cell_id)
@@ -189,11 +204,16 @@ class TestCheckers(unittest.TestCase):
     def test_get_valid_moves_not_your_piece(self):
         start_checkers_game(self.state, self.players)
         current = self.state.get_current_player()
-        
-        other_color = CheckersPlayer.RED if current.color == CheckersPlayer.WHITE else CheckersPlayer.WHITE
-        other_pieces = [(cell_id, piece) for cell_id, piece in self.state.board.items() 
-                       if piece.player == other_color]
-        
+        other_color = (
+            CheckersPlayer.RED
+            if current.color == CheckersPlayer.WHITE
+            else CheckersPlayer.WHITE
+        )
+        other_pieces = [
+            (cell_id, piece)
+            for cell_id, piece in self.state.board.items()
+            if piece.player == other_color
+        ]
         if other_pieces:
             from_cell_id = other_pieces[0][0]
             moves = get_valid_moves(self.state, from_cell_id)
@@ -202,8 +222,7 @@ class TestCheckers(unittest.TestCase):
     def test_hex_board_neighbors(self):
         start_checkers_game(self.state, self.players)
         hex_board = self.state.hex_board
-        
-        for cell_id in range(96):
+        for cell_id in range(78):
             if hex_board.is_valid_cell(cell_id):
                 neighbors = hex_board.get_neighbors(cell_id)
                 self.assertIsInstance(neighbors, list)
@@ -212,15 +231,36 @@ class TestCheckers(unittest.TestCase):
 
     def test_initial_pieces_count(self):
         start_checkers_game(self.state, self.players)
-        
-        white_count = sum(1 for p in self.state.board.values() if p.player == CheckersPlayer.WHITE)
-        red_count = sum(1 for p in self.state.board.values() if p.player == CheckersPlayer.RED)
-        black_count = sum(1 for p in self.state.board.values() if p.player == CheckersPlayer.BLACK)
-        
-        self.assertEqual(white_count, 12)
-        self.assertEqual(red_count, 12)
-        self.assertEqual(black_count, 12)
+        white_count = sum(
+            1 for p in self.state.board.values()
+            if p.player == CheckersPlayer.WHITE
+        )
+        red_count = sum(
+            1 for p in self.state.board.values()
+            if p.player == CheckersPlayer.RED
+        )
+        black_count = sum(
+            1 for p in self.state.board.values()
+            if p.player == CheckersPlayer.BLACK
+        )
+        self.assertEqual(white_count, 11)
+        self.assertEqual(red_count, 11)
+        self.assertEqual(black_count, 11)
+
+    def test_queen_has_moves(self):
+        start_checkers_game(self.state, self.players)
+        for cell_id, piece in list(self.state.board.items()):
+            if piece.is_king:
+                moves = get_valid_moves(self.state, cell_id)
+                self.assertIsInstance(moves, list)
+
+    def test_last_row_per_side(self):
+        start_checkers_game(self.state, self.players)
+        hex_board = self.state.hex_board
+        for side in [1, 2, 3]:
+            self.assertIsInstance(hex_board.last_row_by_side[side], set)
+            self.assertGreater(len(hex_board.last_row_by_side[side]), 0)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

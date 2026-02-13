@@ -1,14 +1,26 @@
 from typing import Dict, List, Set, Tuple, Optional
 
 
+def _rc_to_id(r: int, c: int) -> int:
+    return r * (r + 1) // 2 + c
+
+
+def _id_to_rc(cell_id: int) -> Tuple[int, int]:
+    r = 0
+    while (r + 1) * (r + 2) // 2 <= cell_id:
+        r += 1
+    c = cell_id - r * (r + 1) // 2
+    return (r, c)
+
+
 class HexCell:
-    def __init__(self, cell_id: int, side: int, position: int):
+    def __init__(self, cell_id: int, r: int, c: int):
         self.cell_id = cell_id
-        self.side = side
-        self.position = position
+        self.r = r
+        self.c = c
         self.neighbors: List[int] = []
-        self.is_center = False
-    
+        self.rays: List[List[int]] = []
+
     def add_neighbor(self, neighbor_id: int):
         if neighbor_id not in self.neighbors:
             self.neighbors.append(neighbor_id)
@@ -17,145 +29,120 @@ class HexCell:
 class HexagonalBoard:
     def __init__(self):
         self.cells: Dict[int, HexCell] = {}
-        self.edges: Dict[Tuple[int, int], bool] = {}
         self.side_cells: Dict[int, List[int]] = {1: [], 2: [], 3: []}
-        self.center_cells: Set[int] = set()
+        self.last_row_by_side: Dict[int, Set[int]] = {1: set(), 2: set(), 3: set()}
+        self.forward_by_side: Dict[int, Dict[int, List[int]]] = {1: {}, 2: {}, 3: {}}
+        self.distance_by_side: Dict[int, Dict[int, int]] = {1: {}, 2: {}, 3: {}}
         self.build_board()
-    
+
     def build_board(self):
-        cell_id = 0
-        
+        for r in range(12):
+            for c in range(r + 1):
+                cell_id = _rc_to_id(r, c)
+                self.cells[cell_id] = HexCell(cell_id, r, c)
+
+        for cell_id, cell in self.cells.items():
+            r, c = cell.r, cell.c
+            for dr, dc in [(-1, -1), (-1, 0), (0, -1), (0, 1), (1, 0), (1, 1)]:
+                nr, nc = r + dr, c + dc
+                if 0 <= nc <= nr <= 11:
+                    self.cells[cell_id].add_neighbor(_rc_to_id(nr, nc))
+
         for side in [1, 2, 3]:
-            for pos in range(32):
-                cell = HexCell(cell_id, side, pos)
-                self.cells[cell_id] = cell
-                self.side_cells[side].append(cell_id)
-                cell_id += 1
-        
-        self.connect_sides()
-        self.mark_center()
-    
-    def connect_sides(self):
-        for side in [1, 2, 3]:
-            side_cells = self.side_cells[side]
-            
-            for i, cell_id in enumerate(side_cells):
-                cell = self.cells[cell_id]
-                
-                if i > 0:
-                    prev_cell_id = side_cells[i - 1]
-                    cell.add_neighbor(prev_cell_id)
-                    self.cells[prev_cell_id].add_neighbor(cell_id)
-                    self.edges[(prev_cell_id, cell_id)] = True
-                    self.edges[(cell_id, prev_cell_id)] = True
-                
-                if i < len(side_cells) - 1:
-                    next_cell_id = side_cells[i + 1]
-                    cell.add_neighbor(next_cell_id)
-                    self.cells[next_cell_id].add_neighbor(cell_id)
-                    self.edges[(next_cell_id, cell_id)] = True
-                    self.edges[(cell_id, next_cell_id)] = True
-        
-        self.connect_side_to_side(1, 2)
-        self.connect_side_to_side(2, 3)
-        self.connect_side_to_side(3, 1)
-    
-    def connect_side_to_side(self, side1: int, side2: int):
-        cells1 = self.side_cells[side1]
-        cells2 = self.side_cells[side2]
-        
-        for i in range(min(len(cells1), len(cells2))):
-            if i < 16:
-                cell1_id = cells1[i]
-                cell2_id = cells2[31 - i]
-                self.cells[cell1_id].add_neighbor(cell2_id)
-                self.cells[cell2_id].add_neighbor(cell1_id)
-                self.edges[(cell1_id, cell2_id)] = True
-                self.edges[(cell2_id, cell1_id)] = True
-    
-    def mark_center(self):
-        for side in [1, 2, 3]:
-            center_start = 12
-            center_end = 20
-            for i in range(center_start, center_end):
-                if i < len(self.side_cells[side]):
-                    cell_id = self.side_cells[side][i]
-                    self.center_cells.add(cell_id)
-                    self.cells[cell_id].is_center = True
-    
+            self._fill_side_cells(side)
+            self._fill_distances_and_last_row(side)
+            self._fill_forward(side)
+
+        for cell in self.cells.values():
+            self._build_rays(cell)
+
+    def _fill_side_cells(self, side: int):
+        if side == 1:
+            self.side_cells[1] = [_rc_to_id(r, 0) for r in range(11)]
+        elif side == 2:
+            self.side_cells[2] = [_rc_to_id(r, r) for r in range(1, 12)]
+        else:
+            self.side_cells[3] = [_rc_to_id(11, c) for c in range(11)]
+
+    def _fill_distances_and_last_row(self, side: int):
+        start = set(self.side_cells[side])
+        dist: Dict[int, int] = {cid: 0 for cid in start}
+        q = list(start)
+        qi = 0
+        while qi < len(q):
+            cid = q[qi]
+            qi += 1
+            d = dist[cid]
+            for n in self.cells[cid].neighbors:
+                if n not in dist:
+                    dist[n] = d + 1
+                    q.append(n)
+        self.distance_by_side[side] = dist
+        self.last_row_by_side[side] = {cid for cid, d in dist.items() if d == 7}
+
+    def _fill_forward(self, side: int):
+        dist = self.distance_by_side[side]
+        last = self.last_row_by_side[side]
+        for cell_id, cell in self.cells.items():
+            if cell_id in last:
+                self.forward_by_side[side][cell_id] = []
+                continue
+            my_d = dist.get(cell_id, 999)
+            fwd = [n for n in cell.neighbors if dist.get(n, 0) > my_d]
+            self.forward_by_side[side][cell_id] = fwd
+
+    def _build_rays(self, cell: HexCell):
+        r, c = cell.r, cell.c
+        directions = [
+            (1, 0), (1, 1), (0, 1), (0, -1), (-1, 0), (-1, -1)
+        ]
+        for dr, dc in directions:
+            ray = []
+            nr, nc = r + dr, c + dc
+            while 0 <= nc <= nr <= 11:
+                ray.append(_rc_to_id(nr, nc))
+                nr, nc = nr + dr, nc + dc
+            if ray:
+                cell.rays.append(ray)
+
     def get_neighbors(self, cell_id: int) -> List[int]:
         if cell_id not in self.cells:
             return []
         return self.cells[cell_id].neighbors.copy()
-    
+
+    def get_rays(self, cell_id: int) -> List[List[int]]:
+        if cell_id not in self.cells:
+            return []
+        return [list(ray) for ray in self.cells[cell_id].rays]
+
     def is_valid_cell(self, cell_id: int) -> bool:
         return cell_id in self.cells
-    
+
     def get_side(self, cell_id: int) -> Optional[int]:
         if cell_id not in self.cells:
             return None
-        return self.cells[cell_id].side
-    
-    def is_center(self, cell_id: int) -> bool:
-        return cell_id in self.center_cells
-    
+        r, c = self.cells[cell_id].r, self.cells[cell_id].c
+        if c == 0:
+            return 1
+        if r == c:
+            return 2
+        if r == 11:
+            return 3
+        return None
+
+    def is_last_row_for_side(self, cell_id: int, side: int) -> bool:
+        return cell_id in self.last_row_by_side.get(side, set())
+
     def get_forward_neighbors(self, cell_id: int, player_side: int) -> List[int]:
-        if cell_id not in self.cells:
-            return []
-        
-        cell = self.cells[cell_id]
-        forward = []
-        
-        for neighbor_id in cell.neighbors:
-            neighbor = self.cells[neighbor_id]
-            
-            if neighbor.side == player_side:
-                continue
-            
-            if neighbor.side == self.get_opposite_side(player_side):
-                forward.append(neighbor_id)
-            elif cell.is_center or neighbor.is_center:
-                forward.append(neighbor_id)
-        
-        return forward
-    
+        return self.forward_by_side.get(player_side, {}).get(cell_id, []).copy()
+
     def get_opposite_side(self, side: int) -> int:
         if side == 1:
             return 3
-        elif side == 2:
+        if side == 2:
             return 1
-        else:
-            return 2
-    
-    def get_all_diagonal_neighbors(self, cell_id: int) -> List[int]:
-        return self.get_neighbors(cell_id)
-    
-    def get_three_diagonals_from_center(self, cell_id: int) -> List[List[int]]:
-        if not self.is_center(cell_id):
-            return []
-        
-        diagonals = []
-        cell = self.cells[cell_id]
-        
-        for neighbor_id in cell.neighbors:
-            diagonal = [cell_id, neighbor_id]
-            current = neighbor_id
-            
-            while current in self.cells:
-                next_neighbors = [n for n in self.cells[current].neighbors 
-                                if n not in diagonal and self.cells[n].side != cell.side]
-                if next_neighbors:
-                    current = next_neighbors[0]
-                    diagonal.append(current)
-                else:
-                    break
-            
-            if len(diagonal) > 2:
-                diagonals.append(diagonal)
-        
-        return diagonals[:3]
+        return 2
 
 
 def create_hex_board() -> HexagonalBoard:
     return HexagonalBoard()
-
