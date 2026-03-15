@@ -2,9 +2,10 @@ from enum import Enum
 from dataclasses import dataclass, field
 from typing import List, Optional, Dict
 from datetime import datetime
-from ..utils import Card
+from .utils import Card
 
 
+# фазы партии и типы хода
 class GamePhase(Enum):
     WAITING = "waiting"
     BETTING = "betting"
@@ -20,6 +21,7 @@ class MoveType(Enum):
 
 @dataclass
 class PlayerState:
+    # карта, фишки, текущая ставка, пас/активен
     bot_id: str
     card: Optional[Card] = None
     chips: int = 100
@@ -59,6 +61,7 @@ class PlayerState:
 
 @dataclass
 class GameState:
+    # банк, кто ходит, дилер, последний поставивший, история ходов
     match_id: str
     phase: GamePhase = GamePhase.WAITING
     players: List[PlayerState] = field(default_factory=list)
@@ -89,6 +92,7 @@ class GameState:
         return [p for p in self.players if not p.is_folded and p.is_active]
     
     def is_betting_round_complete(self):
+        # все ли уравняли ставки и дошли до последнего поставившего
         active_players = self.get_active_players()
         if len(active_players) <= 1:
             return True

@@ -1,5 +1,5 @@
 import unittest
-from player_client import PlayerClient
+from scripts.player_client import PlayerClient
 
 
 class TestPlayerClient(unittest.TestCase):

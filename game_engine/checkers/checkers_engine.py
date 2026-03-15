@@ -7,7 +7,7 @@ from .checkers_models import (
     CheckersPiece,
     CheckersPlayerState,
 )
-from .hex_board import create_hex_board
+from .board_graph import build_lallement_graph
 
 
 def start_checkers_game(state, player_ids):
@@ -23,7 +23,7 @@ def start_checkers_game(state, player_ids):
     state.current_player_index = 0
     state.phase = CheckersPhase.PLAYING
     state.started_at = datetime.now()
-    state.hex_board = create_hex_board()
+    state.hex_board = build_lallement_graph()
     setup_board(state)
 
 
@@ -61,90 +61,57 @@ def _simple_moves(state, from_cell_id, piece, player_side):
     return moves
 
 
+def _king_moves(state, from_cell_id):
+    hex_board = state.hex_board
+    return [n for n in hex_board.get_neighbors(from_cell_id) if n not in state.board]
+
+
 def _simple_captures(state, from_cell_id, piece, player_side):
     hex_board = state.hex_board
     captures = []
-    dist = hex_board.distance_by_side[player_side]
-    from_d = dist.get(from_cell_id, 999)
+    is_king_safe = getattr(hex_board, "is_king_safe_cell", None)
     for neighbor_id in hex_board.get_neighbors(from_cell_id):
         if neighbor_id not in state.board:
             continue
         if state.board[neighbor_id].player == piece.player:
             continue
-        for jump_id in hex_board.get_neighbors(neighbor_id):
-            if jump_id == from_cell_id or jump_id in state.board:
-                continue
-            if dist.get(jump_id, 0) <= from_d:
+        opp = state.board[neighbor_id]
+        if opp.is_king and is_king_safe and is_king_safe(neighbor_id, get_player_side(opp.player)):
+            continue
+        landings = getattr(hex_board, "get_capture_landings", None)
+        if landings:
+            allowed = landings(from_cell_id, neighbor_id)
+        else:
+            allowed = [j for j in hex_board.get_neighbors(neighbor_id) if j != from_cell_id]
+        for jump_id in allowed:
+            if jump_id in state.board:
                 continue
             captures.append(jump_id)
     return captures
 
 
-def _queen_quiet_moves(state, from_cell_id, piece):
-    hex_board = state.hex_board
-    moves = []
-    for ray in hex_board.get_rays(from_cell_id):
-        for cell_id in ray:
-            if cell_id in state.board:
-                break
-            moves.append(cell_id)
-    return moves
-
-
-def _queen_captures(state, from_cell_id, piece):
-    hex_board = state.hex_board
-    captures = []
-    for ray in hex_board.get_rays(from_cell_id):
-        first_enemy = None
-        first_enemy_idx = None
-        for i, cell_id in enumerate(ray):
-            if cell_id not in state.board:
-                if first_enemy is not None:
-                    captures.append(cell_id)
-                continue
-            p = state.board[cell_id]
-            if p.player == piece.player:
-                break
-            if first_enemy is None:
-                first_enemy = cell_id
-                first_enemy_idx = i
-            else:
-                break
-        if first_enemy is not None:
-            for j in range(first_enemy_idx + 1, len(ray)):
-                cell_id = ray[j]
-                if cell_id in state.board:
-                    break
-                captures.append(cell_id)
-    return captures
-
-
-def get_valid_moves(state, from_cell_id):
+def get_valid_moves(state, from_cell_id, skip_turn_check=False):
     if from_cell_id not in state.board:
         return []
     piece = state.board[from_cell_id]
     current = state.get_current_player()
-    if not current or piece.player != current.color:
+    if not skip_turn_check and (not current or piece.player != current.color):
         return []
     hex_board = state.hex_board
     player_side = get_player_side(piece.player)
-    all_captures = []
-    all_quiet = []
+    if piece.is_king and getattr(hex_board, "is_king_safe_cell", None) and hex_board.is_king_safe_cell(from_cell_id, player_side):
+        return []
+    all_captures = _simple_captures(state, from_cell_id, piece, player_side)
     if piece.is_king:
-        all_captures = _queen_captures(state, from_cell_id, piece)
-        all_quiet = _queen_quiet_moves(state, from_cell_id, piece)
+        all_quiet = _king_moves(state, from_cell_id)
     else:
-        all_captures = _simple_captures(state, from_cell_id, piece, player_side)
         all_quiet = _simple_moves(state, from_cell_id, piece, player_side)
+    check_color = piece.player if skip_turn_check else (current.color if current else piece.player)
     any_capture = False
     for cid, p in state.board.items():
-        if p.player != current.color:
+        if p.player != check_color:
             continue
-        if p.is_king:
-            caps = _queen_captures(state, cid, p)
-        else:
-            caps = _simple_captures(state, cid, p, get_player_side(p.player))
-        if caps:
+        if _simple_captures(state, cid, p, get_player_side(p.player)):
             any_capture = True
             break
     if any_capture:
@@ -156,40 +123,40 @@ def has_valid_moves(state, player_color):
     for cell_id, piece in state.board.items():
         if piece.player != player_color:
             continue
-        if get_valid_moves(state, cell_id):
+        if get_valid_moves(state, cell_id, skip_turn_check=True):
             return True
     return False
 
 
-def _find_captured_between(hex_board, state, from_cell_id, to_cell_id, piece):
-    for ray in hex_board.get_rays(from_cell_id):
-        if to_cell_id not in ray:
-            continue
-        captured = []
-        for cid in ray:
-            if cid == to_cell_id:
-                break
-            if cid in state.board and state.board[cid].player != piece.player:
-                captured.append(cid)
-        return captured
-    return []
-
-
 def _find_jumped_simple(hex_board, state, from_cell_id, to_cell_id, piece):
+    landings = getattr(hex_board, "get_capture_landings", None)
     for n in hex_board.get_neighbors(from_cell_id):
-        if to_cell_id not in hex_board.get_neighbors(n):
+        if n not in state.board or state.board[n].player == piece.player:
             continue
-        if n in state.board and state.board[n].player != piece.player:
-            return n
+        if landings:
+            if to_cell_id not in landings(from_cell_id, n):
+                continue
+        else:
+            if to_cell_id not in hex_board.get_neighbors(n):
+                continue
+        return n
     return None
 
 
 def check_game_end(state):
     for player in state.players:
+        player.pieces_count = state.count_pieces(player.color)
         if player.pieces_count > 0:
             player.is_blocked = not has_valid_moves(state, player.color)
         else:
             player.is_blocked = True
+    candidates = [p for p in state.players if p.pieces_count > 0]
+    if len(candidates) == 1:
+        state.winner_id = candidates[0].bot_id
+        return True
+    if all(state.count_regular_pieces(p.color) == 0 for p in state.players):
+        determine_winner(state)
+        return True
     active = [p for p in state.players if p.pieces_count > 0 and not p.is_blocked]
     if not active:
         determine_winner(state)
@@ -201,6 +168,9 @@ def check_game_end(state):
     return False
 
 
+TIEBREAKER_ORDER = (CheckersPlayer.BLACK, CheckersPlayer.WHITE, CheckersPlayer.RED)
+
+
 def determine_winner(state):
     candidates = [p for p in state.players if p.pieces_count > 0]
     if not candidates:
@@ -208,17 +178,22 @@ def determine_winner(state):
         return
     for p in candidates:
         p.kings_count = state.count_kings(p.color)
-    best = []
-    max_kings = max(p.kings_count for p in candidates)
-    for p in candidates:
-        if p.kings_count == max_kings:
-            best.append(p)
+    by_kings = max(p.kings_count for p in candidates)
+    best = [p for p in candidates if p.kings_count == by_kings]
     if len(best) == 1:
         state.winner_id = best[0].bot_id
         return
-    max_regular = max(state.count_regular_pieces(p.color) for p in best)
-    final = [p for p in best if state.count_regular_pieces(p.color) == max_regular]
-    state.winner_id = final[0].bot_id if len(final) == 1 else None
+    by_simple = max(state.count_regular_pieces(p.color) for p in best)
+    best = [p for p in best if state.count_regular_pieces(p.color) == by_simple]
+    if len(best) == 1:
+        state.winner_id = best[0].bot_id
+        return
+    for color in TIEBREAKER_ORDER:
+        for p in best:
+            if p.color == color:
+                state.winner_id = p.bot_id
+                return
+    state.winner_id = None
 
 
 def process_checkers_move(state, bot_id, from_cell_id, to_cell_id):
@@ -239,15 +214,8 @@ def process_checkers_move(state, bot_id, from_cell_id, to_cell_id):
         raise InvalidMoveException("Invalid move")
     hex_board = state.hex_board
     player_side = get_player_side(piece.player)
-    captured_cells = []
-    if piece.is_king:
-        captured_cells = _find_captured_between(hex_board, state, from_cell_id, to_cell_id, piece)
-    else:
-        jumped = _find_jumped_simple(
-            hex_board, state, from_cell_id, to_cell_id, piece
-        )
-        if jumped is not None:
-            captured_cells = [jumped]
+    jumped = _find_jumped_simple(hex_board, state, from_cell_id, to_cell_id, piece)
+    captured_cells = [jumped] if jumped is not None else []
     state.board[to_cell_id] = piece
     del state.board[from_cell_id]
     for cid in captured_cells:
@@ -258,7 +226,7 @@ def process_checkers_move(state, bot_id, from_cell_id, to_cell_id):
                 if p.color == captured_piece.player:
                     p.pieces_count = state.count_pieces(p.color)
                     p.kings_count = state.count_kings(p.color)
-    if not piece.is_king and hex_board.is_last_row_for_side(to_cell_id, player_side):
+    if not piece.is_king and hex_board.is_promotion_cell_for_side(to_cell_id, player_side):
         piece.is_king = True
         current_player.kings_count = state.count_kings(current_player.color)
     current_player.pieces_count = state.count_pieces(current_player.color)
@@ -266,18 +234,18 @@ def process_checkers_move(state, bot_id, from_cell_id, to_cell_id):
         "bot_id": bot_id,
         "from": from_cell_id,
         "to": to_cell_id,
+        "captured": captured_cells if captured_cells else None,
         "timestamp": datetime.now().isoformat(),
     })
     if check_game_end(state):
         state.phase = CheckersPhase.FINISHED
         state.finished_at = datetime.now()
         return
-    must_continue = False
-    if captured_cells:
-        if piece.is_king:
-            must_continue = bool(_queen_captures(state, to_cell_id, piece))
-        else:
-            must_continue = bool(_simple_captures(state, to_cell_id, piece, player_side))
+    must_continue = bool(
+        captured_cells
+        and not piece.is_king
+        and _simple_captures(state, to_cell_id, piece, player_side)
+    )
     if not must_continue:
         state.current_player_index = (state.current_player_index + 1) % 3
         for _ in range(3):

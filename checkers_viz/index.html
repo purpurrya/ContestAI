@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Доска — координатная разметка</title>
+  <style>
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; }
+    body { font: 14px/1.4 sans-serif; background: #f0f0f0; color: #2c2c2c; display: flex; align-items: center; justify-content: center; }
+
+    .page {
+      position: relative;
+      width: 960px;
+      height: 840px;
+      flex-shrink: 0;
+      transform-origin: center center;
+      transform: scale(var(--page-scale, 1));
+      background: #f0f0f0;
+    }
+    .board-area {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding-top: 40px;
+      box-sizing: border-box;
+      pointer-events: none;
+      z-index: 0;
+    }
+    .board-area img {
+      max-width: 960px;
+      max-height: 800px;
+      object-fit: contain;
+      transform: scale(2);
+    }
+    #grid, #checkers-layer {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 960px;
+      height: 840px;
+      pointer-events: none;
+      z-index: 1;
+    }
+    #checkers-layer { display: block; z-index: 2; }
+
+    #slider {
+      accent-color: #000;
+    }
+    #slider::-webkit-slider-runnable-track { background: #333; height: 6px; border-radius: 3px; }
+    #slider::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%; background: #000; cursor: pointer; margin-top: -4px; }
+    #slider::-moz-range-track { background: #333; height: 6px; border-radius: 3px; }
+    #slider::-moz-range-thumb { width: 14px; height: 14px; border-radius: 50%; background: #000; cursor: pointer; border: none; }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="controls" style="position:absolute;top:8px;left:8px;right:8px;z-index:10;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+      <input type="file" id="file" accept=".json" />
+      <button id="btnPrev">←</button>
+      <span id="stepInfo">0 / 0</span>
+      <button id="btnNext">→</button>
+      <input type="range" id="slider" min="0" max="0" value="0" style="width:120px" />
+      <span id="err" style="color:#c44;font-size:12px;"></span>
+    </div>
+    <div class="board-area" id="boardArea">
+      <img src="board.png" alt="Доска">
+    </div>
+    <canvas id="grid"></canvas>
+    <canvas id="checkers-layer"></canvas>
+  </div>
+  <script src="cells.js"></script>
+  <script src="board-graph.js"></script>
+  <script src="viz.js"></script>
+  <script src="viz_checkers.js"></script>
+  <script>
+    (function setPageScale() {
+      var scale = Math.min(window.innerWidth / 960, window.innerHeight / 840);
+      document.documentElement.style.setProperty('--page-scale', scale);
+      window.addEventListener('resize', setPageScale);
+    })();
+  </script>
+</body>
+</html>

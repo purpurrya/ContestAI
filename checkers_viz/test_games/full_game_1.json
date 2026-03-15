@@ -1,0 +1,594 @@
+{
+  "match_id": "full_game_1",
+  "phase": "finished",
+  "initial_board": {
+    "0": {
+      "player": "red",
+      "is_king": false
+    },
+    "2": {
+      "player": "red",
+      "is_king": false
+    },
+    "4": {
+      "player": "red",
+      "is_king": false
+    },
+    "6": {
+      "player": "red",
+      "is_king": false
+    },
+    "9": {
+      "player": "red",
+      "is_king": false
+    },
+    "11": {
+      "player": "red",
+      "is_king": false
+    },
+    "13": {
+      "player": "red",
+      "is_king": false
+    },
+    "15": {
+      "player": "red",
+      "is_king": false
+    },
+    "16": {
+      "player": "red",
+      "is_king": false
+    },
+    "18": {
+      "player": "red",
+      "is_king": false
+    },
+    "20": {
+      "player": "red",
+      "is_king": false
+    },
+    "22": {
+      "player": "red",
+      "is_king": false
+    },
+    "32": {
+      "player": "black",
+      "is_king": false
+    },
+    "34": {
+      "player": "black",
+      "is_king": false
+    },
+    "36": {
+      "player": "black",
+      "is_king": false
+    },
+    "38": {
+      "player": "black",
+      "is_king": false
+    },
+    "41": {
+      "player": "black",
+      "is_king": false
+    },
+    "43": {
+      "player": "black",
+      "is_king": false
+    },
+    "45": {
+      "player": "black",
+      "is_king": false
+    },
+    "47": {
+      "player": "black",
+      "is_king": false
+    },
+    "48": {
+      "player": "black",
+      "is_king": false
+    },
+    "50": {
+      "player": "black",
+      "is_king": false
+    },
+    "52": {
+      "player": "black",
+      "is_king": false
+    },
+    "54": {
+      "player": "black",
+      "is_king": false
+    },
+    "64": {
+      "player": "white",
+      "is_king": false
+    },
+    "66": {
+      "player": "white",
+      "is_king": false
+    },
+    "68": {
+      "player": "white",
+      "is_king": false
+    },
+    "70": {
+      "player": "white",
+      "is_king": false
+    },
+    "73": {
+      "player": "white",
+      "is_king": false
+    },
+    "75": {
+      "player": "white",
+      "is_king": false
+    },
+    "77": {
+      "player": "white",
+      "is_king": false
+    },
+    "79": {
+      "player": "white",
+      "is_king": false
+    },
+    "80": {
+      "player": "white",
+      "is_king": false
+    },
+    "82": {
+      "player": "white",
+      "is_king": false
+    },
+    "84": {
+      "player": "white",
+      "is_king": false
+    },
+    "86": {
+      "player": "white",
+      "is_king": false
+    }
+  },
+  "move_history": [
+    {
+      "from": 86,
+      "to": 93
+    },
+    {
+      "from": 22,
+      "to": 31
+    },
+    {
+      "from": 48,
+      "to": 57
+    },
+    {
+      "from": 93,
+      "to": 48,
+      "captured": [
+        57
+      ]
+    },
+    {
+      "from": 18,
+      "to": 25
+    },
+    {
+      "from": 54,
+      "to": 61
+    },
+    {
+      "from": 82,
+      "to": 91
+    },
+    {
+      "from": 20,
+      "to": 29
+    },
+    {
+      "from": 50,
+      "to": 59
+    },
+    {
+      "from": 91,
+      "to": 22,
+      "captured": [
+        29
+      ]
+    },
+    {
+      "from": 15,
+      "to": 29,
+      "captured": [
+        22
+      ]
+    },
+    {
+      "from": 59,
+      "to": 93
+    },
+    {
+      "from": 84,
+      "to": 57,
+      "captured": [
+        93
+      ]
+    },
+    {
+      "from": 31,
+      "to": 89
+    },
+    {
+      "from": 52,
+      "to": 59
+    },
+    {
+      "from": 57,
+      "to": 50
+    },
+    {
+      "from": 25,
+      "to": 52,
+      "captured": [
+        61
+      ]
+    },
+    {
+      "from": 52,
+      "to": 27,
+      "captured": [
+        59
+      ]
+    },
+    {
+      "from": 43,
+      "to": 57,
+      "captured": [
+        50
+      ]
+    },
+    {
+      "from": 48,
+      "to": 93,
+      "captured": [
+        57
+      ]
+    },
+    {
+      "from": 16,
+      "to": 25
+    },
+    {
+      "from": 93,
+      "to": 59
+    },
+    {
+      "from": 27,
+      "to": 52,
+      "captured": [
+        59
+      ]
+    },
+    {
+      "from": 45,
+      "to": 59,
+      "captured": [
+        52
+      ]
+    },
+    {
+      "from": 89,
+      "to": 82
+    },
+    {
+      "from": 59,
+      "to": 91
+    },
+    {
+      "from": 75,
+      "to": 89,
+      "captured": [
+        82
+      ]
+    },
+    {
+      "from": 89,
+      "to": 20,
+      "captured": [
+        29
+      ]
+    },
+    {
+      "from": 13,
+      "to": 27,
+      "captured": [
+        20
+      ]
+    },
+    {
+      "from": 91,
+      "to": 18,
+      "captured": [
+        27
+      ]
+    },
+    {
+      "from": 18,
+      "to": 63,
+      "captured": [
+        25
+      ]
+    },
+    {
+      "from": 80,
+      "to": 89
+    },
+    {
+      "from": 63,
+      "to": 25
+    },
+    {
+      "from": 89,
+      "to": 31
+    },
+    {
+      "from": 25,
+      "to": 18
+    },
+    {
+      "from": 31,
+      "to": 22
+    },
+    {
+      "from": 11,
+      "to": 25,
+      "captured": [
+        18
+      ]
+    },
+    {
+      "from": 22,
+      "to": 15
+    },
+    {
+      "from": 25,
+      "to": 61
+    },
+    {
+      "from": 61,
+      "to": 52
+    },
+    {
+      "from": 52,
+      "to": 45
+    },
+    {
+      "from": 38,
+      "to": 52,
+      "captured": [
+        45
+      ]
+    },
+    {
+      "from": 52,
+      "to": 59
+    },
+    {
+      "from": 59,
+      "to": 27
+    },
+    {
+      "from": 27,
+      "to": 20
+    },
+    {
+      "from": 20,
+      "to": 13
+    },
+    {
+      "from": 6,
+      "to": 20,
+      "captured": [
+        13
+      ]
+    },
+    {
+      "from": 15,
+      "to": 6
+    },
+    {
+      "from": 20,
+      "to": 27
+    },
+    {
+      "from": 27,
+      "to": 59
+    },
+    {
+      "from": 59,
+      "to": 50
+    },
+    {
+      "from": 41,
+      "to": 59,
+      "captured": [
+        50
+      ]
+    },
+    {
+      "from": 59,
+      "to": 27
+    },
+    {
+      "from": 27,
+      "to": 18
+    },
+    {
+      "from": 9,
+      "to": 27,
+      "captured": [
+        18
+      ]
+    },
+    {
+      "from": 27,
+      "to": 91
+    },
+    {
+      "from": 91,
+      "to": 82
+    },
+    {
+      "from": 73,
+      "to": 91,
+      "captured": [
+        82
+      ]
+    },
+    {
+      "from": 91,
+      "to": 29
+    },
+    {
+      "from": 29,
+      "to": 22
+    },
+    {
+      "from": 22,
+      "to": 13
+    },
+    {
+      "from": 4,
+      "to": 22,
+      "captured": [
+        13
+      ]
+    },
+    {
+      "from": 22,
+      "to": 29
+    },
+    {
+      "from": 29,
+      "to": 91
+    },
+    {
+      "from": 91,
+      "to": 84
+    },
+    {
+      "from": 77,
+      "to": 91,
+      "captured": [
+        84
+      ]
+    },
+    {
+      "from": 91,
+      "to": 59
+    },
+    {
+      "from": 59,
+      "to": 50
+    },
+    {
+      "from": 50,
+      "to": 41
+    },
+    {
+      "from": 34,
+      "to": 48,
+      "captured": [
+        41
+      ]
+    },
+    {
+      "from": 48,
+      "to": 57
+    },
+    {
+      "from": 57,
+      "to": 93
+    },
+    {
+      "from": 93,
+      "to": 84
+    },
+    {
+      "from": 84,
+      "to": 75
+    },
+    {
+      "from": 68,
+      "to": 82,
+      "captured": [
+        75
+      ]
+    },
+    {
+      "from": 82,
+      "to": 89
+    },
+    {
+      "from": 89,
+      "to": 29
+    },
+    {
+      "from": 29,
+      "to": 20
+    },
+    {
+      "from": 20,
+      "to": 13
+    },
+    {
+      "from": 13,
+      "to": 4
+    }
+  ],
+  "board": {
+    "0": {
+      "player": "red",
+      "is_king": false
+    },
+    "2": {
+      "player": "red",
+      "is_king": false
+    },
+    "32": {
+      "player": "black",
+      "is_king": false
+    },
+    "36": {
+      "player": "black",
+      "is_king": false
+    },
+    "47": {
+      "player": "black",
+      "is_king": false
+    },
+    "64": {
+      "player": "white",
+      "is_king": false
+    },
+    "66": {
+      "player": "white",
+      "is_king": false
+    },
+    "70": {
+      "player": "white",
+      "is_king": false
+    },
+    "79": {
+      "player": "white",
+      "is_king": false
+    },
+    "6": {
+      "player": "white",
+      "is_king": false
+    },
+    "4": {
+      "player": "white",
+      "is_king": false
+    }
+  },
+  "winner_id": "bot1"
+}

@@ -1,10 +1,11 @@
 from datetime import datetime
-from ..utils import Deck
+from .utils import Deck
 from ..exceptions import InvalidMoveException, GameStateException, GameOverException
 from .models import GameState, GamePhase, MoveType, PlayerState
 
 
 def start_game(state, player_ids):
+    # раздача по одной карте, первый ход после дилера
     if state.phase != GamePhase.WAITING:
         raise GameStateException("Game already started")
     
@@ -28,6 +29,7 @@ def start_game(state, player_ids):
 
 
 def process_move(state, bot_id, move_type, amount=0):
+    # fold / bet / call / check, потом переход хода или конец раунда
     if state.phase != GamePhase.BETTING:
         raise GameStateException("Not in betting phase")
     
@@ -110,6 +112,7 @@ def process_move(state, bot_id, move_type, amount=0):
 
 
 def _advance_turn(state):
+    # следующий активный или конец раунда
     if state.is_betting_round_complete():
         _end_betting_round(state)
         return
@@ -128,6 +131,7 @@ def _advance_turn(state):
 
 
 def _end_betting_round(state):
+    # сравнение карт у активных, победитель забирает банк
     active = state.get_active_players()
     
     if len(active) == 0:
@@ -155,6 +159,7 @@ def _end_betting_round(state):
 
 
 def reset_for_next_hand(state):
+    # новый дилер, сброс ставок и пасов, новая раздача
     if state.phase != GamePhase.FINISHED:
         raise GameStateException("Game not finished")
     

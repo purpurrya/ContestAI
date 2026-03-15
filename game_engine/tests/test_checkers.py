@@ -36,9 +36,9 @@ class TestCheckers(unittest.TestCase):
         start_checkers_game(self.state, self.players)
         hex_board = self.state.hex_board
         self.assertEqual(len(hex_board.cells), 78)
-        self.assertEqual(len(hex_board.side_cells[1]), 11)
-        self.assertEqual(len(hex_board.side_cells[2]), 11)
-        self.assertEqual(len(hex_board.side_cells[3]), 11)
+        self.assertEqual(len(hex_board.side_cells[1]), 12)
+        self.assertEqual(len(hex_board.side_cells[2]), 12)
+        self.assertEqual(len(hex_board.side_cells[3]), 12)
 
     def test_simple_move(self):
         start_checkers_game(self.state, self.players)
@@ -155,29 +155,24 @@ class TestCheckers(unittest.TestCase):
     def test_king_promotion(self):
         start_checkers_game(self.state, self.players)
         hex_board = self.state.hex_board
-        last_row = hex_board.last_row_by_side[1]
-        dist6 = [c for c, d in hex_board.distance_by_side[1].items() if d == 6]
-        good_neighbor = None
-        for cell_6 in dist6:
-            fwd = hex_board.get_forward_neighbors(cell_6, 1)
-            for neighbor in hex_board.get_neighbors(cell_6):
-                if neighbor in last_row and neighbor in fwd:
-                    good_neighbor = (cell_6, neighbor)
+        from_cell, to_cell = None, None
+        for cell_id in hex_board.cells:
+            fwd = hex_board.get_forward_neighbors(cell_id, 1)
+            for neighbor in fwd:
+                if hex_board.is_promotion_cell_for_side(neighbor, 1):
+                    from_cell, to_cell = cell_id, neighbor
                     break
-            if good_neighbor:
+            if from_cell is not None:
                 break
-        if not good_neighbor:
+        if from_cell is None:
             self.skipTest("no suitable cell pair for promotion test")
-        cell_6, neighbor = good_neighbor
-        self.state.board = {cell_6: CheckersPiece(CheckersPlayer.WHITE)}
+        self.state.board = {from_cell: CheckersPiece(CheckersPlayer.WHITE)}
         self.state.current_player_index = 0
         current = self.state.get_current_player()
         for p in self.state.players:
             p.pieces_count = 1 if p.color == CheckersPlayer.WHITE else 0
-        process_checkers_move(
-            self.state, current.bot_id, cell_6, neighbor
-        )
-        self.assertTrue(self.state.board[neighbor].is_king)
+        process_checkers_move(self.state, current.bot_id, from_cell, to_cell)
+        self.assertTrue(self.state.board[to_cell].is_king)
 
     def test_game_already_started(self):
         start_checkers_game(self.state, self.players)
@@ -243,23 +238,26 @@ class TestCheckers(unittest.TestCase):
             1 for p in self.state.board.values()
             if p.player == CheckersPlayer.BLACK
         )
-        self.assertEqual(white_count, 11)
-        self.assertEqual(red_count, 11)
-        self.assertEqual(black_count, 11)
+        self.assertEqual(white_count, 12)
+        self.assertEqual(red_count, 12)
+        self.assertEqual(black_count, 12)
 
-    def test_queen_has_moves(self):
-        start_checkers_game(self.state, self.players)
-        for cell_id, piece in list(self.state.board.items()):
-            if piece.is_king:
-                moves = get_valid_moves(self.state, cell_id)
-                self.assertIsInstance(moves, list)
-
-    def test_last_row_per_side(self):
+    def test_promotion_cells_per_side(self):
         start_checkers_game(self.state, self.players)
         hex_board = self.state.hex_board
         for side in [1, 2, 3]:
-            self.assertIsInstance(hex_board.last_row_by_side[side], set)
-            self.assertGreater(len(hex_board.last_row_by_side[side]), 0)
+            found = False
+            for cell_id in hex_board.cells:
+                if hex_board.is_promotion_cell_for_side(cell_id, side):
+                    found = True
+                    break
+            self.assertTrue(found, f"side {side} has no promotion cells")
+
+    def test_queen_no_moves(self):
+        start_checkers_game(self.state, self.players)
+        for cell_id, piece in list(self.state.board.items()):
+            if piece.is_king:
+                self.assertEqual(get_valid_moves(self.state, cell_id), [])
 
 
 if __name__ == "__main__":

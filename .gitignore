@@ -27,13 +27,11 @@ ENV/
 env.bak/
 venv.bak/
 
-# Django
+# Logs and local data
 *.log
-local_settings.py
-db.sqlite3
-db.sqlite3-journal
-/staticfiles/
-/media/
+game.json
+checkers_viz/game.json
+checkers_viz/game_manual.json
 
 # IDE
 .vscode/
@@ -91,4 +89,6 @@ celerybeat.pid
 dmypy.json
 
 # Project specific
-КР Тихоненко.txt
+*.backup
+db.sqlite3
+*.sqlite3
