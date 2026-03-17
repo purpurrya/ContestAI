@@ -1,0 +1,22 @@
+{% extends 'accounts/base.html' %}
+
+{% block title %}Главная страница{% endblock %}
+
+{% block content %}
+<h1>Добро пожаловать!</h1>
+
+{% if user.is_authenticated %}
+    <p>Привет, <strong>{{ user.username }}</strong>! Вы успешно авторизованы.</p>
+    <div style="margin-top: 20px; text-align: center;">
+        <a href="{% url 'profile' %}" class="btn">Профиль</a>
+        <a href="{% url 'home' %}" class="btn">Главная страница</a>
+    </div>
+{% else %}
+    <p>Пожалуйста, войдите или зарегистрируйтесь, чтобы продолжить.</p>
+    <div style="margin-top: 20px; text-align: center;">
+        <a href="{% url 'login' %}" class="btn">Войти</a>
+        <a href="{% url 'register' %}" class="btn">Зарегистрироваться</a>
+    </div>
+{% endif %}
+{% endblock %}
+

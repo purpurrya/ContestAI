@@ -82,7 +82,7 @@
     graphCache = null;
   }
 
-  // Соседи по доске (одна клетка = один ход). Должно совпадать с HAND_NEIGHBORS в board_graph.py
+  // соседи по доске 
   var MOVES = {};
   (function initMoves() {
     for (var i = 0; i < BLACK_CELL_IDS.length; i++) MOVES[BLACK_CELL_IDS[i]] = [];

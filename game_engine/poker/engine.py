@@ -29,7 +29,7 @@ def start_game(state, player_ids):
 
 
 def process_move(state, bot_id, move_type, amount=0):
-    # fold / bet / call / check, потом переход хода или конец раунда
+    # фолд бет колл чек, потом переход хода или конец раунда
     if state.phase != GamePhase.BETTING:
         raise GameStateException("Not in betting phase")
     

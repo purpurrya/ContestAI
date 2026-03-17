@@ -1,6 +1,6 @@
 (function (w) {
   'use strict';
-  // Загрузка JSON, воспроизведение ходов по шагам, отрисовка шашек на canvas
+  // загрузка  json, воспроизведение ходов по шагам, отрисовка шашек на canvas
   var CELLS = (w.CELLS) ? w.CELLS : [];
   var Board = w.Board || null;
   var GRID_W = 960;
@@ -37,7 +37,7 @@
   }
 
   function normBoard(board) {
-    // ключи клеток -> число (JSON приходит строками)
+    // ключи клеток -> число (json приходит строками)
     var out = {};
     if (!board) return out;
     for (var key in board) {

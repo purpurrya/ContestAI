@@ -1,6 +1,6 @@
 (function () {
   'use strict';
-  // Сетка и подписи id клеток на доске
+  // сетка и подписи id клеток на доске
   var gridStep = 10;
   var canvas = null;
   var ctx = null;

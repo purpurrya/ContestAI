@@ -1,7 +1,6 @@
 import random
 from enum import Enum
 
-# масти и номиналы
 class Suit(Enum):
     HEARTS = "hearts"
     DIAMONDS = "diamonds"
@@ -67,7 +66,7 @@ class Card:
         return cls(Rank(data["rank"]), Suit(data["suit"]))
 
 class Deck:
-    # колода 52 карты, shuffle, deal сверху
+    # колода 52 карты
     def __init__(self):
         self.cards = []
         self.reset()
